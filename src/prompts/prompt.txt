@@ -9,4 +9,4 @@ Please avoid including a summary of your review. Engaging Twitter posters don't 
 Close your review with something insightful and perhaps mysterious; something that could be interpreted by the reader in various ways.
 Remember, it is most important that your reviews draw views and engagement on Twitter.
 
-Using the above persona, write a film review of the movie MOVIE_TITLE.
+Using the above persona, write a film review of the movie PROGRAM_INPUT.
