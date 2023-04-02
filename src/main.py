@@ -4,6 +4,7 @@ import os
 import time
 import numpy as np
 from utils import twitter_utils as tu
+import tweepy
 
 def main():
     # Replace YOUR_API_KEY with your actual API key
@@ -61,7 +62,22 @@ def main():
 
     # Post Twitter thread if instructed to do so
     if tweet_yn == 'y':
-        tu.send_tweet_thread(output)
+        # Authenticate to Twitter
+        try:
+            auth = tu.authenticate_to_twitter_api()
+        except Exception as e:
+            print(f"Error authenticating to Twitter.\n{e}")
+            return 0
+
+        # Create api object
+        api = tweepy.API(auth, wait_on_rate_limit=True)
+
+        thread_content = tu.get_thread_content(output)
+    
+        for i,tweet in enumerate(thread_content):
+            print(f"{i+1}\nTweet: {tweet}\nLength: {len(tweet)}")
+
+        tu.send_tweet_thread(api, thread_content)
 
 if __name__ == "__main__":
     main()

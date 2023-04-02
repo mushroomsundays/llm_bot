@@ -1,13 +1,14 @@
 from utils import twitter_utils as tu
 
-response = tu.send_tweet('Ready to learn some history? (testing2)')
+response = tu.send_v2('Test postt')
+print(response)
 
-id = response[0].get('id')
+#id = response[0].get('id')
 
 
 print(type(response))
-print(type(response[0]))
-print(response[0])
+#print(type(response[0]))
+#print(response[0])
 
 """
 try:

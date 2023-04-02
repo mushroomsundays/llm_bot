@@ -13,5 +13,6 @@ Describe how this society shaped future societies.
 Talk about a common practice from this society that would be controversial today.
 Close with a line about how that society came to an end.
 End each tweet thread with 'Hope you enjoyed. See you next time' and a hand waving emoji.
+After that, say 'Follow @HistoryOfCiv for more on past civilizations'.
 
 Using the above persona, write a tweet thread about a civilization or society from around the year PROGRAM_INPUT.

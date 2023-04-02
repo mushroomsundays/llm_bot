@@ -14,29 +14,32 @@ def sleep_for_random_secs(min, max):
 ####################
 # Authenticate to Twitter API v2
 ####################
-def authenticate_to_twitter_api(secrets):
+def authenticate_to_twitter_api():
+    # Import Twitter API credentials from local env
+    secrets = {
+        'consumer_key': os.getenv('TWITTER_API_KEY'),
+        'consumer_secret': os.getenv('TWITTER_API_SECRET'),
+        'access_token': os.getenv('TWITTER_ACCESS_TOKEN'),
+        'access_token_secret': os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
+    }
     # authenticate to Twitter API
     auth = tweepy.OAuthHandler(secrets['consumer_key'], secrets['consumer_secret'])
     auth.set_access_token(secrets['access_token'], secrets['access_token_secret'])
 
+    return auth
+
 ####################
 # Break up tweets longer than 140 characters
 ####################
-def all_under_140_check(thread_content):
-    check = [True if len(x) <= 140 else False for x in thread_content]
-    if False in check:
-        return False 
-    else:
-        return True
-        
 def find_indexes(s, target):
     """Returns index of each occurrence of char in s"""
     return [i for i,char in enumerate(s) if char == target]
 
 def process_tweet(tweet):
-    """If tweet is > 250 chars, split it."""
+    """If tweet is > 280 chars, split it."""
+    # TODO: do this recursively until tweets are all short enough
     tweet_length = len(tweet)
-    if tweet_length <= 250:
+    if tweet_length <= 280:
         return tweet
     else:
         print(f"Tweet is longer than 250 ({tweet_length}) characters:\n{tweet}")
@@ -58,41 +61,14 @@ def process_tweet(tweet):
         print(f"First tweet:\n{t1}\n Legnth: {len(t1)}")
         print(f"Second tweet:\n{t2}\n Length: {len(t2)}")
         return [t1,t2]
-        
 
-####################
-# Send Tweet Thread
-####################
-def send_tweet_thread(content):
-    # Import Twitter API credentials from local env
-    secrets = {
-        'consumer_key': os.getenv('TWITTER_API_KEY'),
-        'consumer_secret': os.getenv('TWITTER_API_SECRET'),
-        'access_token': os.getenv('TWITTER_ACCESS_TOKEN'),
-        'access_token_secret': os.getenv('TWITTER_ACCESS_TOKEN_SECRET')
-    }
-    # Authenticate to Twitter
-    try:
-        auth = authenticate_to_twitter_api(secrets)
-    except Exception as e:
-        print(f"Error authenticating to Twitter.\n{e}")
-        return 0
-    # Create API object
-    try:
-        client = tweepy.Client(consumer_key=os.getenv('TWITTER_API_KEY'),
-                       consumer_secret=os.getenv('TWITTER_API_SECRET'),
-                       access_token=os.getenv('TWITTER_ACCESS_TOKEN'),
-                       access_token_secret=os.getenv('TWITTER_ACCESS_TOKEN_SECRET'))
-    except Exception as e:
-        print(f"Error creating Twitter API object.\n{e}")
-        return 0
-
+def get_thread_content(content):
     # Prepare tweet thread
     # TODO: how do I do this recursively?
     thread_content = []
     for tweet in content.split('\n'):
         #thread_content = content.split('\n')
-        if len(tweet) <= 250:
+        if len(tweet) <= 280:
             thread_content.append(tweet)
         else:
             new_tweets = process_tweet(tweet)
@@ -102,26 +78,34 @@ def send_tweet_thread(content):
     # Remove blanks
     thread_content = [x for x in thread_content if len(x) > 0]
     
-    for i,tweet in enumerate(thread_content):
-        print(f"{i+1}\nTweet: {tweet}\nLength: {len(tweet)}")
-    
+    return thread_content
+
+####################
+# Send Tweet Thread
+####################
+def send_tweet_thread(api, thread_content):
     # Post the thread
     try:
         for i,tweet in enumerate(thread_content):
             if i == 0: # First tweet
                 tweet += f' (1/{len(thread_content)})'
-                response = client.create_tweet(text=tweet)
+                response = api.update_status(tweet)
             else:
-                tweet += f' ({i+1}/{len(thread_content)})'.lstrip('. ')
-                print(f"Tweet to send:\n{tweet}")
-                print(f"Length: {len(tweet)}")
-                response = client.create_tweet(
-                        text=content,
-                        in_reply_to_tweet_id=id)
+                if tweet[:2] == '. ':
+                    print("Tweet starts with period.")
+                    tweet = tweet[2:] # lstrip not working for some reason?
+                tweet += f' ({i+1}/{len(thread_content)})'
+                #print(f"Tweet to send:\n{tweet}")
+                #print(f"Length: {len(tweet)}")
+                response = api.update_status(
+                            tweet,
+                            in_reply_to_status_id=response.id, 
+                            auto_populate_reply_metadata=True)
                 #response = client.create_tweet(text=content) # also doesn't work
             print(f"Tweet #{i+1} sent!\n{tweet}")
-            print(f"Response: {response}")
-            id = response[0].get('id')
+            #print(f"Response: {response}")
+            #id = response[0].get('id')
+            id = response.id
             print(f"id for tweet: {id}")
             sleep_for_random_secs(5,30)
         print("Twitter thread complete.")
