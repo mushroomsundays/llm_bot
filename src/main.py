@@ -2,23 +2,20 @@ import openai
 import json
 import os
 import time
-
-def parse_response():
-    with open('response.json') as json_file:
-        data = json.load(json_file)
-
-    response = data['choices'][0]['message']['content']
-
-    print(response)
-    return response
+import tweepy
+import numpy as np
+from utils import twitter_utils as tu
 
 def main():
     # Replace YOUR_API_KEY with your actual API key
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
+    #movie_title = '8 Mile'
+    battle_year = str(np.random.randint(0,2021))
+
     # Set up the prompt
-    with open("prompts/prompt.txt", "r") as f:
-        prompt = f.read()
+    with open("prompts/historical_battle.txt", "r") as f:
+        prompt = f.read().replace('BATTLE_YEAR', battle_year)
     print(f"Imported prompt:\n{prompt}")
     print("Sending API request...")
     start = time.time()
@@ -33,7 +30,7 @@ def main():
     # Save response as JSON
     with open("completions/most_recent.json", "w") as f:
         json.dump(completion, f)
-    print("Raw completion saved to completions/most_recent.json")
+    print("Raw completion saved to completions/most_recent.json\n")
 
     # Extract the completion data
     output = completion['choices'][0]['message']['content']
@@ -45,7 +42,7 @@ def main():
     }
 
     print(f"Output:\n{output}")
-    print(f"Metadata:\n{metadata}")
+    #print(f"Metadata:\n{metadata}")
 
     # Save the prompt, output, and metadata to a file
     with open("completions/completions.json", "a") as outfile:
@@ -53,6 +50,20 @@ def main():
         json.dump(data, outfile)
         outfile.write("\n")
     print("Formatted completion appended to completion/completions.json")
+
+    # Ask for permission to send tweet
+    valid_answer = False 
+    while not valid_answer:
+        tweet_yn = input("Send tweet? (y/n)").lower()
+        if tweet_yn not in ['y', 'n']:
+            print("Please input a valid answer: Y, y, N, n")
+            continue
+        else:
+            valid_answer = True # End loop and store variable
+
+    # Send tweet if instructed to do so
+    if tweet_yn == 'y':
+        tu.send_tweet(output)
 
 if __name__ == "__main__":
     main()
