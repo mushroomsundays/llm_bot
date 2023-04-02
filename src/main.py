@@ -2,7 +2,6 @@ import openai
 import json
 import os
 import time
-import tweepy
 import numpy as np
 from utils import twitter_utils as tu
 
@@ -10,12 +9,11 @@ def main():
     # Replace YOUR_API_KEY with your actual API key
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
-    #movie_title = '8 Mile'
-    battle_year = str(np.random.randint(0,2021))
+    program_input = str(np.random.randint(0,2021))
 
     # Set up the prompt
-    with open("prompts/historical_battle.txt", "r") as f:
-        prompt = f.read().replace('BATTLE_YEAR', battle_year)
+    with open("prompts/historical_society.txt", "r") as f:
+        prompt = f.read().replace('PROGRAM_INPUT', program_input)
     print(f"Imported prompt:\n{prompt}")
     print("Sending API request...")
     start = time.time()
@@ -54,16 +52,16 @@ def main():
     # Ask for permission to send tweet
     valid_answer = False 
     while not valid_answer:
-        tweet_yn = input("Send tweet? (y/n)").lower()
-        if tweet_yn not in ['y', 'n']:
+        tweet_yn = input("Post Twitter thread? (y/n)").lower()
+        if tweet_yn not in ('y', 'n'):
             print("Please input a valid answer: Y, y, N, n")
             continue
         else:
             valid_answer = True # End loop and store variable
 
-    # Send tweet if instructed to do so
+    # Post Twitter thread if instructed to do so
     if tweet_yn == 'y':
-        tu.send_tweet(output)
+        tu.send_tweet_thread(output)
 
 if __name__ == "__main__":
     main()
