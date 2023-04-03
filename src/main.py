@@ -6,6 +6,8 @@ import numpy as np
 from utils import twitter_utils as tu
 import tweepy
 
+MODEL = "gpt-3.5-turbo"
+
 def main():
     # Replace YOUR_API_KEY with your actual API key
     openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -19,7 +21,7 @@ def main():
     print("Sending API request...")
     start = time.time()
     completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo", 
+        model=MODEL, 
         messages = [{"role": "user", "content": prompt}],
         temperature=0.7,
     )

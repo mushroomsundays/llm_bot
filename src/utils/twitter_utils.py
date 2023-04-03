@@ -1,7 +1,10 @@
 import tweepy
 import os
 import time
+import json
+import base64
 import numpy as np
+from utils import openai_utils as ai
 
 ####################
 # Sleep for random number of seconds between bounds
@@ -80,6 +83,18 @@ def get_thread_content(content):
     
     return thread_content
 
+def write_png_image(img_filename):
+    image_location_json = f"images/{img_filename}.json"
+    with open(image_location_json, "r") as f:
+        png_str = json.load(f)['data'][0].get('b64_json')
+        print("JSON loaded.")
+        png_bytes = base64.b64decode(png_str) # get your raw bytes
+        print("JSON decoded.")
+    with open(f"images/{img_filename}.png", "bw") as fid: # write as binary file
+        fid.write(png_bytes)
+        print("File written.")
+
+
 ####################
 # Send Tweet Thread
 ####################
@@ -87,24 +102,50 @@ def send_tweet_thread(api, thread_content):
     # Post the thread
     try:
         for i,tweet in enumerate(thread_content):
+            first_sentence = tweet.replace('?','.').split('.')[0]
             if i == 0: # First tweet
                 tweet += f' (1/{len(thread_content)})'
-                response = api.update_status(tweet)
+                # download dall-e image with prompt = first sentence (split on . or ?)
+                ai.download_dalle_image(prompt=first_sentence, addon='landscape')
+                print(f"Image downloaded. Prompt:\n{first_sentence}")
+                # Attach PNG to tweet
+                img_filename = tweet.lower().replace(' ', '_').replace(',','')[:15]
+                write_png_image(img_filename)
+                image_location_png = f"images/{img_filename}.png"
+                ret = api.media_upload(filename=image_location_png)
+                response = api.update_status(media_ids=[ret.media_id_string], status=tweet)
             else:
                 if tweet[:2] == '. ':
                     print("Tweet starts with period.")
                     tweet = tweet[2:] # lstrip not working for some reason?
-                tweet += f' ({i+1}/{len(thread_content)})'
-                #print(f"Tweet to send:\n{tweet}")
-                #print(f"Length: {len(tweet)}")
-                response = api.update_status(
+                # Download and attach an image if third or penultimate tweet
+                # Third is usually where a character is introduced
+                if (i == 2) or (i == len(thread_content)-1):
+                    if i == 2:
+                        addon = 'portrait'
+                    else:
+                        addon = 'fall_of_civ'
+                    # download dall-e image with prompt = first sentence (split on . or ?)
+                    ai.download_dalle_image(prompt=first_sentence, addon=addon)
+                    print(f"Image downloaded. Prompt:\n{first_sentence}")
+                    # Attach PNG to tweet
+                    img_filename = tweet.lower().replace(' ', '_').replace(',','')[:15]
+                    write_png_image(img_filename)
+                    image_location_png = f"images/{img_filename}.png"
+                    tweet += f' ({i+1}/{len(thread_content)})'
+                    ret = api.media_upload(filename=image_location_png)
+                    response = api.update_status(
                             tweet,
                             in_reply_to_status_id=response.id, 
+                            media_ids=[ret.media_id_string],
                             auto_populate_reply_metadata=True)
-                #response = client.create_tweet(text=content) # also doesn't work
+                else:
+                    tweet += f' ({i+1}/{len(thread_content)})'
+                    response = api.update_status(
+                                tweet,
+                                in_reply_to_status_id=response.id,
+                                auto_populate_reply_metadata=True)
             print(f"Tweet #{i+1} sent!\n{tweet}")
-            #print(f"Response: {response}")
-            #id = response[0].get('id')
             id = response.id
             print(f"id for tweet: {id}")
             sleep_for_random_secs(5,30)
