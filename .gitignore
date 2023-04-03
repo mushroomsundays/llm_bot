@@ -1,5 +1,7 @@
 credentials.py
 completions/*
 *.json
+*.png
 todo.txt
 *__pycache__/*
+*.pyc
