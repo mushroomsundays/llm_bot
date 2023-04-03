@@ -39,13 +39,13 @@ def find_indexes(s, target):
     return [i for i,char in enumerate(s) if char == target]
 
 def process_tweet(tweet):
-    """If tweet is > 280 chars, split it."""
+    """If tweet is >60 chars, split it."""
     # TODO: do this recursively until tweets are all short enough
     tweet_length = len(tweet)
-    if tweet_length <= 280:
+    if tweet_length <= 260:
         return tweet
     else:
-        print(f"Tweet is longer than 250 ({tweet_length}) characters:\n{tweet}")
+        print(f"Tweet is longer than 260 ({tweet_length}) characters:\n{tweet}")
         # Find the sentence end (period) closest to halfway through the tweet
         period_indexes = find_indexes(tweet, '.')
         print(f"Period indexes: {period_indexes}")
@@ -71,7 +71,7 @@ def get_thread_content(content):
     thread_content = []
     for tweet in content.split('\n'):
         #thread_content = content.split('\n')
-        if len(tweet) <= 280:
+        if len(tweet) <= 260:
             thread_content.append(tweet)
         else:
             new_tweets = process_tweet(tweet)
