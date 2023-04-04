@@ -2,8 +2,12 @@ import openai
 import json
 import os
 import numpy as np
+import time
 
 def download_dalle_image(prompt, addon=None):
+    """Prompts Dall-e and downloads the image as JSON.
+    Returns img_filename which does not include the filetype (e.g. .json)"""
+
     openai.api_key = os.getenv('OPENAI_API_KEY')
 
     # Append addon to prompt
@@ -22,8 +26,13 @@ def download_dalle_image(prompt, addon=None):
         size="256x256",
         response_format="b64_json",
     )
-    img_filename = prompt.lower().replace(' ', '_').replace(',','')[:15]
+
+    # TODO: end function here and return response. Create separate function to dump and convert to png
+    timestamp = time.time()
+    img_filename = prompt.lower().replace(' ', '_').replace(',','')[:15] + f'_{timestamp}'
     file_name = f"images/{img_filename}.json"
 
     with open(file_name, mode="w", encoding="utf-8") as file:
         json.dump(response, file)
+
+    return img_filename

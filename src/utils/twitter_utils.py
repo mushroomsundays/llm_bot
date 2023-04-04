@@ -106,10 +106,10 @@ def send_tweet_thread(api, thread_content):
             if i == 0: # First tweet
                 tweet += f' (1/{len(thread_content)})'
                 # download dall-e image with prompt = first sentence (split on . or ?)
-                ai.download_dalle_image(prompt=first_sentence, addon='landscape')
+                img_filename = ai.download_dalle_image(prompt=first_sentence, addon='landscape')
                 print(f"Image downloaded. Prompt:\n{first_sentence}")
                 # Attach PNG to tweet
-                img_filename = tweet.lower().replace(' ', '_').replace(',','')[:15]
+                #img_filename = tweet.lower().replace(' ', '_').replace(',','')[:15]
                 write_png_image(img_filename)
                 image_location_png = f"images/{img_filename}.png"
                 ret = api.media_upload(filename=image_location_png)
@@ -126,10 +126,10 @@ def send_tweet_thread(api, thread_content):
                     else:
                         addon = 'fall_of_civ'
                     # download dall-e image with prompt = first sentence (split on . or ?)
-                    ai.download_dalle_image(prompt=first_sentence, addon=addon)
+                    img_filename = ai.download_dalle_image(prompt=first_sentence, addon=addon)
                     print(f"Image downloaded. Prompt:\n{first_sentence}")
                     # Attach PNG to tweet
-                    img_filename = tweet.lower().replace(' ', '_').replace(',','')[:15]
+                    #img_filename = tweet.lower().replace(' ', '_').replace(',','')[:15]
                     write_png_image(img_filename)
                     image_location_png = f"images/{img_filename}.png"
                     tweet += f' ({i+1}/{len(thread_content)})'
