@@ -9,12 +9,14 @@ class Slack:
         self.bot_user_oauth_token = bot_user_oauth_token
     
     def post_message(self, message, channel, image_path=None):
+        # Create Slack client
+        client = WebClient(self.webhook_url)
+        
         if image_path:
             if not os.path.exists(image_path):
                 raise FileNotFoundError(f"Image file not found at path: {image_path}")
             
             # Send the message with an image attached
-            client = WebClient(self.webhook_url)
             with open(image_path, 'rb') as f:
                 image = f.read()
                 response = client.files_upload(

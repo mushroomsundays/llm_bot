@@ -5,6 +5,8 @@ import time
 import numpy as np
 from utils import twitter_utils as tu
 import tweepy
+from slack_ import Slack
+
 
 MODEL = "gpt-3.5-turbo"
 
@@ -62,6 +64,16 @@ def main():
         else:
             valid_answer = True # End loop and store variable
 
+    # Ask for permission to send to Slack
+    valid_answer = False 
+    while not valid_answer:
+        slack_yn = input("Post to Slack as well? (y/n)").lower()
+        if slack_yn not in ('y', 'n'):
+            print("Please input a valid answer: Y, y, N, n")
+            continue
+        else:
+            valid_answer = True # End loop and store variable
+
     # Post Twitter thread if instructed to do so
     if tweet_yn == 'y':
         # Authenticate to Twitter
@@ -79,7 +91,16 @@ def main():
         for i,tweet in enumerate(thread_content):
             print(f"{i+1}\nTweet: {tweet}\nLength: {len(tweet)}")
 
-        tu.send_tweet_thread(api, thread_content)
+        # Create slack client
+        webhook_url = os.getenv('SLACK_WEBHOOK_URL')
+        bot_user_oauth_token = os.getenv('SLACK_BOT_USER_OAUTH_TOKEN')
+        slack = Slack(webhook_url, bot_user_oauth_token)
+
+        # Post to Slack channel if instructed
+        if slack_yn == 'y':
+            tu.send_tweet_thread(api, thread_content, slack)
+        else:
+            tu.send_tweet_thread(api, thread_content)
 
 if __name__ == "__main__":
     main()

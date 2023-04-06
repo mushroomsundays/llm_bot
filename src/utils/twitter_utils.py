@@ -99,7 +99,7 @@ def write_png_image(img_filename):
 ####################
 # Send Tweet Thread
 ####################
-def send_tweet_thread(api, thread_content):
+def send_tweet_thread(api, thread_content, slack=None):
     # Post the thread
     try:
         for i,tweet in enumerate(thread_content):
@@ -115,6 +115,12 @@ def send_tweet_thread(api, thread_content):
                 image_location_png = f"images/{img_filename}.png"
                 ret = api.media_upload(filename=image_location_png)
                 response = api.update_status(media_ids=[ret.media_id_string], status=tweet)
+                if slack:
+                    try:
+                        slack.post_message(tweet, "#history", image_location_png)
+                        print("Message sent to Slack!")
+                    except Exception as e:
+                        print(f"Error posting to Slack:\n{e}")
             else:
                 if tweet[:2] == '. ':
                     print("Tweet starts with period.")
@@ -140,12 +146,24 @@ def send_tweet_thread(api, thread_content):
                             in_reply_to_status_id=response.id, 
                             media_ids=[ret.media_id_string],
                             auto_populate_reply_metadata=True)
+                    if slack:
+                        try:
+                            slack.post_message(tweet, "#history", image_location_png)
+                            print("Message sent to Slack!")
+                        except Exception as e:
+                            print(f"Error posting to Slack:\n{e}")
                 else:
                     tweet += f' ({i+1}/{len(thread_content)})'
                     response = api.update_status(
                                 tweet,
                                 in_reply_to_status_id=response.id,
                                 auto_populate_reply_metadata=True)
+                    if slack:
+                        try:
+                            slack.post_message(tweet, "#history")
+                            print("Message sent to Slack!")
+                        except Exception as e:
+                            print(f"Error posting to Slack:\n{e}")
             print(f"Tweet #{i+1} sent!\n{tweet}")
             id = response.id
             print(f"id for tweet: {id}")
