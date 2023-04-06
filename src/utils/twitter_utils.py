@@ -5,6 +5,7 @@ import json
 import base64
 import numpy as np
 from utils import openai_utils as ai
+from slack_ import Slack 
 
 ####################
 # Sleep for random number of seconds between bounds
